@@ -78,3 +78,7 @@ lint/generated/
 lint/outputs/
 lint/tmp/
 # lint/reports/
+
+# M1saki add
+.idea/markdown-navigator
+.idea/markdown-navigator.xml
