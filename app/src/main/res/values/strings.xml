@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">ImageEncryption</string>
+    <string name="keyHintRange0to1">请输入密钥(0~1)</string>
+    <string name="encrypt">加密</string>
+    <string name="decrypt">解密</string>
 </resources>
