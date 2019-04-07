@@ -89,7 +89,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 etKey.setText("");
                 break;
             case R.id.btn_main_dec:
-                // TODO
                 if (ivDisplay.getDrawable() == null) {
                     Toast.makeText(this, "请选择一张图片", Toast.LENGTH_LONG).show();
                     return ;
@@ -204,6 +203,11 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         return path;
     }
 
+    /**
+     * author : 陈龙江
+     * time   : 2019/4/7 20:43
+     * desc   : 显示图片
+     */
     private void displayImage(String imagePath) {
         if (imagePath != null) {
             Bitmap bitmap = BitmapFactory.decodeFile(imagePath);
@@ -221,17 +225,17 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private void encrypt(double key) {
         LogUtil.d(TAG, "encrypt: begin");
         // 获取图像像素矩阵的行数与列数
-        Bitmap bmpOriginal = ((BitmapDrawable)ivDisplay.getDrawable()).getBitmap();
-        int M = bmpOriginal.getHeight();
-        int N = bmpOriginal.getWidth();
+        Bitmap bmpDisplay = ((BitmapDrawable)ivDisplay.getDrawable()).getBitmap();
+        int M = bmpDisplay.getHeight();
+        int N = bmpDisplay.getWidth();
+        LogUtil.d(TAG, "Image ==> height: " + M + ", width: " + N);
         // 获取图像像素矩阵
         int []pixel = new int[M * N];
-        bmpOriginal.getPixels(pixel, 0, N, 0, 0, N, M);
+        bmpDisplay.getPixels(pixel, 0, N, 0, 0, N, M);
         // 像素矩阵转二维
         int [][]pixel2D = new int[M][N];
         ArrayUtil.change1Dto2D(pixel, pixel2D, M, N);
         // 加密
-        // TODO
         ScramblingUtil.encrypt(key, pixel2D, M, N);
         // 加密后矩阵转一维
         ArrayUtil.change2Dto1D(pixel2D, pixel, M, N);
@@ -250,24 +254,23 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private void decrypt(double key) {
         LogUtil.d(TAG, "decrypt: begin");
         // 获取图像像素矩阵的行数与列数
-        Bitmap bmpOriginal = ((BitmapDrawable)ivDisplay.getDrawable()).getBitmap();
-        int M = bmpOriginal.getHeight();
-        int N = bmpOriginal.getWidth();
+        Bitmap bmpDisplay = ((BitmapDrawable)ivDisplay.getDrawable()).getBitmap();
+        int M = bmpDisplay.getHeight();
+        int N = bmpDisplay.getWidth();
         // 获取图像像素矩阵
         int []pixel = new int[M * N];
-        bmpOriginal.getPixels(pixel, 0, N, 0, 0, N, M);
+        bmpDisplay.getPixels(pixel, 0, N, 0, 0, N, M);
         // 像素矩阵转二维
         int [][]pixel2D = new int[M][N];
         ArrayUtil.change1Dto2D(pixel, pixel2D, M, N);
         // 解密
-        // TODO
         ScramblingUtil.decrypt(key, pixel2D, M, N);
         // 加密后矩阵转一维
         ArrayUtil.change2Dto1D(pixel2D, pixel, M, N);
         // 生成解密后的图像
-        Bitmap bmpEncrypt = Bitmap.createBitmap(pixel, 0, N, N, M, Bitmap.Config.ARGB_8888);
+        Bitmap bmpDecrypt = Bitmap.createBitmap(pixel, 0, N, N, M, Bitmap.Config.ARGB_8888);
         // 显示解密后的图像
-        ivDisplay.setImageBitmap(bmpEncrypt);
+        ivDisplay.setImageBitmap(bmpDecrypt);
         LogUtil.d(TAG, "decrypt: end");
     }
 

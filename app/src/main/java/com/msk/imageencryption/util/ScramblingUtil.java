@@ -88,6 +88,34 @@ public class ScramblingUtil {
 
     /**
      * author : 陈龙江
+     * time   : 2019/4/7 20:17
+     * desc   : 加密，将行置乱算法作用于curCol列
+     * return : 返回混沌序列的最后一个元素作为生成下一个混沌序列的初值
+     */
+    private static double colScramblingEncrypt(double initValue, int curCol, int pixel[][], int M, int N) {
+        // 生成混沌序列
+        double logisticArray[] = new double[M];
+        generateLogisticArray(initValue,logisticArray, M);
+        // 生成混沌序列的 值-下标 的映射
+        HashMap mapKeyIndex = new HashMap<Double, Integer>();
+        generateMapKeyIndex(mapKeyIndex, logisticArray, M);
+        // 生成地址映射表
+        int addressArray[] = new int[M];
+        generateAddressArray(addressArray, mapKeyIndex, logisticArray, M);
+        // 用临时数组保存被置乱后的像素
+        int temp[] = new int[M];
+        for (int i = 0; i < M; ++i) {
+            temp[addressArray[i]] = pixel[i][curCol];
+        }
+        // 置乱原图
+        for (int i = 0; i < M; ++i) {
+            pixel[i][curCol] = temp[i];
+        }
+        return logisticArray[M - 1];
+    }
+
+    /**
+     * author : 陈龙江
      * time   : 2019/4/3 22:34
      * desc   : 加密，将行置乱算法作用于所有行
      */
@@ -95,6 +123,18 @@ public class ScramblingUtil {
         double value = initValue;
         for (int i = 0; i < M; ++i) {
             value = rowScramblingEncrypt(value, i, pixel, M, N);
+        }
+    }
+
+    /**
+     * author : 陈龙江
+     * time   : 2019/4/7 20:26
+     * desc   : 加密，将列置乱算法作用于所有列
+     */
+    private static void colScramblingEncryptForAll(double initValue, int pixel[][], int M, int N) {
+        double value = initValue;
+        for (int j = 0; j < N; ++j) {
+            value = colScramblingEncrypt(value, j, pixel, M, N);
         }
     }
 
@@ -128,6 +168,34 @@ public class ScramblingUtil {
 
     /**
      * author : 陈龙江
+     * time   : 2019/4/7 20:49
+     * desc   : 解密，将列置乱算法作用于curCol列
+     * return : 返回混沌序列的最后一个元素作为生成下一个混沌序列的初值
+     */
+    private static double colScramblingDecrypt(double initValue, int curCol, int pixel[][], int M, int N) {
+        // 生成混沌序列
+        double logisticArray[] = new double[M];
+        generateLogisticArray(initValue,logisticArray, M);
+        // 生成混沌序列的 值-下标 的映射
+        HashMap mapKeyIndex = new HashMap<Double, Integer>();
+        generateMapKeyIndex(mapKeyIndex, logisticArray, M);
+        // 生成地址映射表
+        int addressArray[] = new int[M];
+        generateAddressArray(addressArray, mapKeyIndex, logisticArray, M);
+        // 用临时数组保存被置乱后的像素
+        int temp[] = new int[M];
+        for (int i = 0; i < M; ++i) {
+            temp[i] = pixel[addressArray[i]][curCol];
+        }
+        // 置乱原图
+        for (int i = 0; i < M; ++i) {
+            pixel[i][curCol] = temp[i];
+        }
+        return logisticArray[M - 1];
+    }
+
+    /**
+     * author : 陈龙江
      * time   : 2019/4/4 2:30
      * desc   : 解密，将行置乱算法作用于所有行
      */
@@ -140,17 +208,36 @@ public class ScramblingUtil {
 
     /**
      * author : 陈龙江
+     * time   : 2019/4/7 20:36
+     * desc   : 解密，将列置乱算法作用于所有列
+     */
+    private static void colScramblingDecryptForAll(double initValue, int pixel[][], int M, int N) {
+        double value = initValue;
+        for (int j = 0; j < N; ++j) {
+            value = colScramblingDecrypt(value, j, pixel, M, N);
+        }
+    }
+
+    /**
+     * author : 陈龙江
      * time   : 2019/4/3 22:38
      * desc   : 用置乱算法进行加密
      */
     public static void encrypt(double initValue, int pixel[][], int M, int N) {
         LogUtil.d(TAG, "encrypt: begin");
         rowScramblingEncryptForAll(initValue, pixel, M, N);
+        colScramblingEncryptForAll(initValue, pixel, M, N);
         LogUtil.d(TAG, "encrypt: end");
     }
 
+    /**
+     * author : 陈龙江
+     * time   : 2019/4/7 20:41
+     * desc   : 用置乱算法进行解密
+     */
     public static void decrypt(double initValue, int pixel[][], int M, int N) {
         LogUtil.d(TAG, "decrypt: begin");
+        colScramblingDecryptForAll(initValue, pixel, M, N);
         rowScramblingDecryptForAll(initValue, pixel, M, N);
         LogUtil.d(TAG, "decrypt: end");
     }
