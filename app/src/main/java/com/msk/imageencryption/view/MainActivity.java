@@ -10,6 +10,8 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -26,6 +28,7 @@ import android.widget.Toast;
 import com.msk.imageencryption.R;
 import com.msk.imageencryption.base.BaseActivity;
 import com.msk.imageencryption.util.ArrayUtil;
+import com.msk.imageencryption.util.LoadingUtil;
 import com.msk.imageencryption.util.LogUtil;
 import com.msk.imageencryption.util.ScramblingUtil;
 
@@ -36,7 +39,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private EditText etKey;
     private Button btnEnc;
     private Button btnDec;
-    private ProgressBar pbRunning;
 
     public static final int CHOOSE_PHOTO = 1;
 
@@ -49,12 +51,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         etKey = findViewById(R.id.et_main_key);
         btnEnc = findViewById(R.id.btn_main_enc);
         btnDec = findViewById(R.id.btn_main_dec);
-        pbRunning = findViewById(R.id.pb_running);
-        pbRunning.setVisibility(View.GONE);
         ivDisplay.setOnClickListener(this);
         btnEnc.setOnClickListener(this);
         btnDec.setOnClickListener(this);
-
     }
 
     @Override
@@ -65,7 +64,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 if (ContextCompat.checkSelfPermission(MainActivity.this,
                         Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                     ActivityCompat.requestPermissions(MainActivity.this,
-                            new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, CHOOSE_PHOTO);
+                            new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
                 } else {
                     openAlbum();
                 }
@@ -79,14 +78,24 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                     Toast.makeText(this, "请输入密钥", Toast.LENGTH_LONG).show();
                     return ;
                 }
-                String strKey = etKey.getText().toString();
-                double dbKey = Double.valueOf(strKey);
-                if (dbKey <= 0 || dbKey >= 1) {
-                    Toast.makeText(this, "密钥应为0~1之间的任意小数(不包括0与1)", Toast.LENGTH_LONG).show();
-                    return ;
+                {
+                    String strKey = etKey.getText().toString();
+                    double dbKey = Double.valueOf(strKey);
+                    if (dbKey <= 0 || dbKey >= 1) {
+                        Toast.makeText(this, "密钥应为0~1之间的任意小数(不包括0与1)", Toast.LENGTH_LONG).show();
+                        return ;
+                    }
+                    LoadingUtil.createLoadingDialog(MainActivity.this, "加密中...");
+                    final double dbKeyFinal = dbKey;
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            encrypt(dbKeyFinal);
+                            etKey.setText("");
+                            LoadingUtil.clossDialog();
+                        }
+                    }).start();
                 }
-                encrypt(dbKey);
-                etKey.setText("");
                 break;
             case R.id.btn_main_dec:
                 if (ivDisplay.getDrawable() == null) {
@@ -97,14 +106,24 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                     Toast.makeText(this, "请输入密钥", Toast.LENGTH_LONG).show();
                     return ;
                 }
-                strKey = etKey.getText().toString();
-                dbKey = Double.valueOf(strKey);
-                if (dbKey <= 0 || dbKey >= 1) {
-                    Toast.makeText(this, "密钥应为0~1之间的任意小数(不包括0与1)", Toast.LENGTH_LONG).show();
-                    return ;
+                {
+                    String strKey = etKey.getText().toString();
+                    double dbKey = Double.valueOf(strKey);
+                    if (dbKey <= 0 || dbKey >= 1) {
+                        Toast.makeText(this, "密钥应为0~1之间的任意小数(不包括0与1)", Toast.LENGTH_LONG).show();
+                        return ;
+                    }
+                    LoadingUtil.createLoadingDialog(MainActivity.this, "解密中...");
+                    final double dbKeyFinal = dbKey;
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            decrypt(dbKeyFinal);
+                            etKey.setText("");
+                            LoadingUtil.clossDialog();
+                        }
+                    }).start();
                 }
-                decrypt(dbKey);
-                etKey.setText("");
                 break;
             default:
                 break;
